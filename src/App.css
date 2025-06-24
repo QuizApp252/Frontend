@@ -36,3 +36,19 @@
     transform: rotate(360deg);
   }
 }
+/* src/App.css */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding-top: 65px; /* Khoảng cách để tránh Header cố định che nội dung */
+}
+
+/* Đảm bảo nội dung không bị che bởi modal Profile */
+.profile-overlay {
+  z-index: 1001; /* Đảm bảo modal Profile ở trên Header và Footer */
+}

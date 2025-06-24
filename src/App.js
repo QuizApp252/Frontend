@@ -1,25 +1,43 @@
-import logo from './logo.svg';
+// src/App.js
 import './App.css';
+import RegisterComponent from './component/RegisterComponent';
+import VerifyComponent from './component/VerifyComponent';
+import LoginComponent from './component/LoginComponent';
+import OAuth2Callback from './component/OAuth2Callback';
+import HomeComponent from './component/HomeComponent';
+import { Route, Routes } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Layout from './component/Layout';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <>
+            <Routes>
+                <Route element={<Layout />}>
+                    <Route path="/home" element={<HomeComponent />} />
+                    <Route path="/register" element={<RegisterComponent />} />
+                    <Route path="/verify-otp" element={<VerifyComponent />} />
+                    <Route path="/login" element={<LoginComponent />} />
+                    <Route path="/oauth2/callback" element={<OAuth2Callback />} />
+                    {/* Route mặc định */}
+                    <Route path="/" element={<HomeComponent />} />
+                </Route>
+            </Routes>
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
+        </>
+    );
 }
 
 export default App;
