@@ -563,3 +563,6 @@
     color: #ef4444;
     font-weight: bold;
 }
+.profile-actions a{
+    text-decoration: none;
+}

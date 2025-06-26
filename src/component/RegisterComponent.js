@@ -5,7 +5,6 @@ import '../css/Register.css';
 import api from '../service/AuthService';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import Header from "./HeaderComponent";
 
 const RegisterComponent = () => {
     const navigate = useNavigate();
@@ -68,7 +67,6 @@ const RegisterComponent = () => {
 
     return (
         <>
-            <Header/>
             <div className="register-container">
                 <form onSubmit={formik.handleSubmit} className="register-form">
                     <h2>Đăng ký</h2>
