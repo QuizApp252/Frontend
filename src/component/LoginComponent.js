@@ -5,7 +5,6 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import api from '../service/AuthService';
 import '../css/Login.css';
-import Header from "./HeaderComponent";
 
 const LoginComponent = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -44,8 +43,14 @@ const LoginComponent = () => {
                         serverErrors[field] = message;
                     });
                     setErrors(serverErrors);
+                    // Kiểm tra thông điệp lỗi để quyết định hành động
+                    const errorMessage = err.response.data.message || "Đã có lỗi xảy ra khi đăng nhập!";
+                    toast.error(errorMessage);
+                    if (errorMessage.includes("Tài khoản chưa được kích hoạt!")) {
+                        navigate("/verify-otp");
+                    }
                 } else {
-                    toast.error('Tài khoản hoặc mật khẩu chưa đúng!');
+                    toast.error("Đã có lỗi xảy ra khi đăng nhập!");
                 }
             } finally {
                 setSubmitting(false);
@@ -61,7 +66,6 @@ const LoginComponent = () => {
 
     return (
         <>
-            <Header/>
             <div className="login-container">
                 <form onSubmit={formik.handleSubmit} className="login-form">
                     <h2>Đăng nhập</h2>

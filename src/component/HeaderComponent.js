@@ -30,7 +30,10 @@ const Header = () => {
 
     useEffect(() => {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (!token || token === 'undefined') return;
+        if (!token || token === 'undefined') {
+            setUser(null); // Đảm bảo user là null nếu không có token
+            return;
+        }
 
         const decoded = parseJwt(token);
         if (decoded && decoded.name) {
@@ -39,14 +42,15 @@ const Header = () => {
                 email: decoded.email
             });
         } else {
+            setUser(null); // Đặt user là null nếu token không hợp lệ
             console.warn('Token không chứa name hoặc email');
         }
-    }, [location.pathname]);
+    }, [location.pathname]); // Giữ dependency như hiện tại, nhưng logic bên trong đảm bảo cập nhật
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         sessionStorage.removeItem('token');
-        setUser(null);
+        setUser(null); // Đặt user thành null ngay lập tức
         toast.success('Đăng xuất thành công!');
         navigate('/login');
     };
@@ -57,7 +61,7 @@ const Header = () => {
         } else if (location.pathname === '/register') {
             navigate('/login');
         } else {
-            navigate('/home');
+            navigate('/login');
         }
     };
 

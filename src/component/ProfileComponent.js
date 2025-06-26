@@ -4,6 +4,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import api from '../service/AuthService';
 import '../css/Profile.css';
+import { Link } from 'react-router-dom';
 
 const ProfileComponent = ({ onClose }) => {
     const [profile, setProfile] = useState(null);
@@ -306,7 +307,11 @@ const ProfileComponent = ({ onClose }) => {
                         )}
                     </div>
                 </div>
-
+                <div className="profile-actions">
+                    <Link to="/change-password" className="change-password-link">
+                        🔒 Đổi mật khẩu
+                    </Link>
+                </div>
                 <button className="profile-close-btn" onClick={onClose}>Đóng</button>
             </div>
         </div>
