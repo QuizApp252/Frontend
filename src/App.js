@@ -6,6 +6,9 @@ import LoginComponent from './component/LoginComponent';
 import OAuth2Callback from './component/OAuth2Callback';
 import HomeComponent from './component/HomeComponent';
 import ChangePasswordComponent from "./component/ChangePasswordComponent";
+import ProfileComponent from "./component/ProfileComponent";
+import ForgotPasswordComponent from "./component/ForgotPasswordComponent";
+import ResetPasswordComponent from "./component/ResetPasswordComponent";
 import { Route, Routes } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -22,6 +25,9 @@ function App() {
                     <Route path="/login" element={<LoginComponent />} />
                     <Route path="/oauth2/callback" element={<OAuth2Callback />} />
                     <Route path="/change-password" element={<ChangePasswordComponent />} />
+                    <Route path="/profile" element={<ProfileComponent />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordComponent />} />
+                    <Route path="/reset-password" element={<ResetPasswordComponent />} />
                                        {/* Route mặc định */}
                     <Route path="/" element={<HomeComponent />} />
                 </Route>

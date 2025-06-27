@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import '../css/Header.css';
-import ProfileComponent from "./ProfileComponent";
 
-// Hàm giải mã JWT
 function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
@@ -24,14 +22,13 @@ function parseJwt(token) {
 
 const Header = () => {
     const [user, setUser] = useState(null);
-    const [showProfile, setShowProfile] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token || token === 'undefined') {
-            setUser(null); // Đảm bảo user là null nếu không có token
+            setUser(null);
             return;
         }
 
@@ -42,15 +39,15 @@ const Header = () => {
                 email: decoded.email
             });
         } else {
-            setUser(null); // Đặt user là null nếu token không hợp lệ
+            setUser(null);
             console.warn('Token không chứa name hoặc email');
         }
-    }, [location.pathname]); // Giữ dependency như hiện tại, nhưng logic bên trong đảm bảo cập nhật
+    }, [location.pathname]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         sessionStorage.removeItem('token');
-        setUser(null); // Đặt user thành null ngay lập tức
+        setUser(null);
         toast.success('Đăng xuất thành công!');
         navigate('/login');
     };
@@ -63,10 +60,6 @@ const Header = () => {
         } else {
             navigate('/login');
         }
-    };
-
-    const toggleProfile = () => {
-        setShowProfile(prev => !prev);
     };
 
     const getAuthButtonText = () => {
@@ -90,12 +83,9 @@ const Header = () => {
                         <button className="header-logout-btn" onClick={handleLogout}>
                             Đăng xuất
                         </button>
-                        <div className="header-profile-toggle">
-                            <button className="header-profile-btn" onClick={toggleProfile}>
-                                Hồ sơ
-                            </button>
-                            {showProfile && <ProfileComponent onClose={toggleProfile} />}
-                        </div>
+                        <button className="header-profile-btn" onClick={() => navigate('/profile')}>
+                            Hồ sơ
+                        </button>
                     </div>
                 ) : (
                     <button className="header-auth-btn" onClick={handleAuthNavigation}>
