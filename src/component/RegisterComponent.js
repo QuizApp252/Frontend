@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import '../css/Register.css';
-import api from '../service/AuthService';
+import auth from '../service/AuthService';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -41,7 +41,7 @@ const RegisterComponent = () => {
         }),
         onSubmit: async (values, { setSubmitting, setErrors, resetForm }) => {
             try {
-                const res = await api.post('/auth/register', values);
+                const res = await auth.post('/register', values);
                 localStorage.setItem("pendingEmail", values.email);
                 navigate("/verify-otp", {
                     state: {

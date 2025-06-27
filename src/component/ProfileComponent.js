@@ -2,20 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import api from '../service/AuthService';
+import user from '../service/UserService';
 import '../css/Profile.css';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-const ProfileComponent = ({ onClose }) => {
+const ProfileComponent = () => {
     const [profile, setProfile] = useState(null);
     const [editedFields, setEditedFields] = useState({});
     const [fieldErrors, setFieldErrors] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const res = await api.get('/user/profile', {
+                const res = await user.get('/profile', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setProfile(res.data.data);
@@ -50,7 +51,8 @@ const ProfileComponent = ({ onClose }) => {
             dateOfBirth: Yup.date()
                 .nullable()
                 .max(new Date(), 'Ngày sinh phải là ngày trong quá khứ')
-                .typeError('Ngày sinh không hợp lệ')
+                .typeError('Ngày sinh không hợp lệ'),
+            avatar: Yup.mixed().nullable()
         }),
         onSubmit: async (values, { setSubmitting }) => {
             // This won't be called directly, each field is updated individually
@@ -60,16 +62,15 @@ const ProfileComponent = ({ onClose }) => {
     const handleAvatarChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            // Validate file type and size
             const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
             if (!validTypes.includes(file.type)) {
                 setFieldErrors(prev => ({ ...prev, avatar: 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF)' }));
                 return;
             }
 
-            const maxSize = 5 * 1024 * 1024; // 5MB
+            const maxSize = 10 * 1024 * 1024; // 10MB
             if (file.size > maxSize) {
-                setFieldErrors(prev => ({ ...prev, avatar: 'Kích thước file không được vượt quá 5MB' }));
+                setFieldErrors(prev => ({ ...prev, avatar: 'Kích thước file không được vượt quá 10MB' }));
                 return;
             }
 
@@ -82,7 +83,6 @@ const ProfileComponent = ({ onClose }) => {
     const handleFieldChange = (field, value) => {
         formik.setFieldValue(field, value);
         setEditedFields(prev => ({ ...prev, [field]: true }));
-        // Clear previous backend errors for this field
         setFieldErrors(prev => ({ ...prev, [field]: null }));
     };
 
@@ -90,10 +90,8 @@ const ProfileComponent = ({ onClose }) => {
         if (!editedFields[field]) return;
 
         try {
-            // Validate the specific field first
             await formik.validateField(field);
 
-            // Check if there are validation errors for this field
             if (formik.errors[field]) {
                 formik.setFieldTouched(field, true);
                 return;
@@ -102,19 +100,17 @@ const ProfileComponent = ({ onClose }) => {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const formData = new FormData();
 
-            // Only append the specific field being updated
             if (field === 'avatar' && formik.values.avatar && typeof formik.values.avatar !== 'string') {
                 formData.append('avatar', formik.values.avatar);
-            } else if (field !== 'avatar' && formik.values[field]) {
-                formData.append(field, formik.values[field]);
+            } else if (field !== 'avatar') {
+                formData.append(field, formik.values[field] ?? '');
             }
 
-            // Always append name as it's required by backend
             if (field !== 'name' && formik.values.name) {
                 formData.append('name', formik.values.name);
             }
 
-            const response = await api.post('/user/profile/update', formData, {
+            const response = await user.post('/profile/update', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: `Bearer ${token}`
@@ -125,13 +121,11 @@ const ProfileComponent = ({ onClose }) => {
             setEditedFields(prev => ({ ...prev, [field]: false }));
             setFieldErrors(prev => ({ ...prev, [field]: null }));
 
-            // Refresh profile data
-            const profileRes = await api.get('/user/profile', {
+            const profileRes = await user.get('/profile', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setProfile(profileRes.data.data);
 
-            // Update form values with new data
             if (field === 'avatar' && response.data.data?.avatar) {
                 formik.setFieldValue('avatar', response.data.data.avatar);
             }
@@ -140,19 +134,15 @@ const ProfileComponent = ({ onClose }) => {
             const errorResponse = err.response?.data;
 
             if (errorResponse?.data && Array.isArray(errorResponse.data)) {
-                // Handle validation errors from backend
                 const newFieldErrors = {};
                 errorResponse.data.forEach(error => {
                     newFieldErrors[error.field] = error.message;
                 });
                 setFieldErrors(prev => ({ ...prev, ...newFieldErrors }));
-
-                // Show first error in toast
                 if (errorResponse.data.length > 0) {
                     toast.error(errorResponse.data[0].message);
                 }
             } else {
-                // Handle general errors
                 const errorMessage = errorResponse?.message || `Lỗi cập nhật ${getFieldDisplayName(field)}`;
                 toast.error(errorMessage);
                 setFieldErrors(prev => ({ ...prev, [field]: errorMessage }));
@@ -171,14 +161,11 @@ const ProfileComponent = ({ onClose }) => {
     };
 
     const getFieldError = (field) => {
-        // Priority: backend error > formik error (only if touched)
         return fieldErrors[field] || (formik.touched[field] && formik.errors[field]);
     };
 
-    const handleOverlayClick = (e) => {
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
+    const handleClose = () => {
+        navigate('/home');
     };
 
     if (!profile) {
@@ -192,9 +179,12 @@ const ProfileComponent = ({ onClose }) => {
     }
 
     return (
-        <div className="profile-overlay" onClick={handleOverlayClick}>
+        <div className="profile-overlay">
             <div className="profile-modal">
-                <h2>Thông tin cá nhân</h2>
+                <div className="profile-header">
+                    <h2>Thông tin cá nhân</h2>
+                    <button className="close-button" onClick={handleClose}>×</button>
+                </div>
 
                 <div className="profile-avatar-section">
                     <div className="file-input-wrapper">
@@ -292,7 +282,7 @@ const ProfileComponent = ({ onClose }) => {
                                 onChange={(e) => handleFieldChange('dateOfBirth', e.target.value)}
                                 onBlur={() => formik.setFieldTouched('dateOfBirth', true)}
                                 className={getFieldError('dateOfBirth') ? 'error' : ''}
-                                max={new Date().toISOString().split('T')[0]} // Prevent future dates
+                                max={new Date().toISOString().split('T')[0]}
                             />
                             <button
                                 onClick={() => handleUpdateField('dateOfBirth')}
@@ -308,11 +298,13 @@ const ProfileComponent = ({ onClose }) => {
                     </div>
                 </div>
                 <div className="profile-actions">
-                    <Link to="/change-password" className="change-password-link">
+                    <button
+                        onClick={() => navigate('/change-password')}
+                        className="change-password-link"
+                    >
                         🔒 Đổi mật khẩu
-                    </Link>
+                    </button>
                 </div>
-                <button className="profile-close-btn" onClick={onClose}>Đóng</button>
             </div>
         </div>
     );

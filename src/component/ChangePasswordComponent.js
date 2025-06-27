@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import api from '../service/AuthService';
+import auth from '../service/AuthService';
+import user from '../service/UserService';
 import '../css/ChangePassword.css';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import * as Yup from 'yup';
 
 const ChangePasswordComponent = ({ onClose }) => {
     const [form, setForm] = useState({
@@ -12,7 +14,30 @@ const ChangePasswordComponent = ({ onClose }) => {
     });
 
     const [errors, setErrors] = useState({});
+    const [show, setShow] = useState({
+        old: false,
+        new: false,
+        confirm: false
+    });
+
     const navigate = useNavigate();
+
+    const toggleShow = (field) => {
+        setShow(prev => ({ ...prev, [field]: !prev[field] }));
+    };
+
+    const passwordSchema = Yup.object().shape({
+        oldPassword: Yup.string().required('Mật khẩu cũ không được để trống'),
+        newPassword: Yup.string()
+            .min(8, 'Mật khẩu ít nhất 8 ký tự')
+            .matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':",.<>/?\\|~])/,
+                'Mật khẩu cần chứa chữ hoa, thường, số và ký tự đặc biệt')
+            .required('Mật khẩu không được để trống')
+            .notOneOf([Yup.ref('oldPassword')], 'Mật khẩu mới không được trùng với mật khẩu cũ'),
+        confirmPassword: Yup.string()
+            .oneOf([Yup.ref('newPassword')], 'Mật khẩu xác nhận không khớp')
+            .required('Vui lòng xác nhận mật khẩu')
+    });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -23,15 +48,12 @@ const ChangePasswordComponent = ({ onClose }) => {
         e.preventDefault();
         setErrors({});
 
-        if (form.newPassword !== form.confirmPassword) {
-            setErrors({ confirmPassword: 'Mật khẩu xác nhận không khớp' });
-            return;
-        }
-
         try {
+            await passwordSchema.validate(form, { abortEarly: false });
+
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await api.post(
-                '/user/change-password',
+            const response = await user.post(
+                '/change-password',
                 {
                     oldPassword: form.oldPassword,
                     newPassword: form.newPassword
@@ -44,16 +66,27 @@ const ChangePasswordComponent = ({ onClose }) => {
             );
 
             toast.success(response.data.message || 'Đổi mật khẩu thành công!');
+            setForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); // ✅ Reset form
             if (onClose) onClose();
-        } catch (error) {
-            const resData = error.response?.data;
 
-            if (resData?.data && Array.isArray(resData.data)) {
-                const serverErrors = {};
-                resData.data.forEach(err => {
-                    serverErrors[err.field] = err.message;
+        } catch (err) {
+            if (err.name === 'ValidationError') {
+                const validationErrors = {};
+                err.inner.forEach(error => {
+                    validationErrors[error.path] = error.message;
                 });
-                setErrors(serverErrors);
+                setErrors(validationErrors);
+            } else {
+                const resData = err.response?.data;
+                if (resData?.data && Array.isArray(resData.data)) {
+                    const serverErrors = {};
+                    resData.data.forEach(err => {
+                        serverErrors[err.field] = err.message;
+                    });
+                    setErrors(serverErrors);
+                } else {
+                    toast.error('Mật khẩu không đúng!');
+                }
             }
         }
     };
@@ -71,47 +104,39 @@ const ChangePasswordComponent = ({ onClose }) => {
             <div className="change-password-container">
                 <div className="change-password-header">
                     <h2>Đổi mật khẩu</h2>
-                    <button
-                        className="close-button"
-                        onClick={handleClose}
-                        aria-label="Đóng"
-                    >
-                        &times;
-                    </button>
+                    <button className="close-button" onClick={handleClose}>&times;</button>
                 </div>
+
                 <form onSubmit={handleSubmit} className="change-password-form">
-                    <div className="form-group">
-                        <label>Mật khẩu cũ</label>
-                        <input
-                            type="password"
-                            name="oldPassword"
-                            value={form.oldPassword}
-                            onChange={handleChange}
-                        />
-                        {errors.oldPassword && <small className="error">{errors.oldPassword}</small>}
-                    </div>
-
-                    <div className="form-group">
-                        <label>Mật khẩu mới</label>
-                        <input
-                            type="password"
-                            name="newPassword"
-                            value={form.newPassword}
-                            onChange={handleChange}
-                        />
-                        {errors.newPassword && <small className="error">{errors.newPassword}</small>}
-                    </div>
-
-                    <div className="form-group">
-                        <label>Xác nhận mật khẩu mới</label>
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            value={form.confirmPassword}
-                            onChange={handleChange}
-                        />
-                        {errors.confirmPassword && <small className="error">{errors.confirmPassword}</small>}
-                    </div>
+                    {['oldPassword', 'newPassword', 'confirmPassword'].map((field, i) => {
+                        const labels = {
+                            oldPassword: 'Mật khẩu cũ',
+                            newPassword: 'Mật khẩu mới',
+                            confirmPassword: 'Xác nhận mật khẩu mới'
+                        };
+                        const toggleField = field === 'oldPassword' ? 'old' : field === 'newPassword' ? 'new' : 'confirm';
+                        return (
+                            <div className="form-group" key={field}>
+                                <label>{labels[field]}</label>
+                                <div className="password-input-wrapper">
+                                    <input
+                                        type={show[toggleField] ? "text" : "password"}
+                                        name={field}
+                                        value={form[field]}
+                                        onChange={handleChange}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="toggle-password-btn"
+                                        onClick={() => toggleShow(toggleField)}
+                                    >
+                                        {show[toggleField] ? "🙈" : "👁"}
+                                    </button>
+                                </div>
+                                {errors[field] && <small className="error">{errors[field]}</small>}
+                            </div>
+                        );
+                    })}
 
                     <div className="form-actions">
                         <button type="submit" className="btn-submit">Xác nhận</button>

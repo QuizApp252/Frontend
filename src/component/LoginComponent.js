@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { useFormik } from 'formik';
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {toast} from 'react-toastify';
+import {useFormik} from 'formik';
 import * as Yup from 'yup';
-import api from '../service/AuthService';
+import auth from '../service/AuthService';
 import '../css/Login.css';
 
 const LoginComponent = () => {
@@ -25,10 +25,10 @@ const LoginComponent = () => {
             password: Yup.string()
                 .required('Mật khẩu không được để trống')
         }),
-        onSubmit: async (values, { setSubmitting, setErrors }) => {
+        onSubmit: async (values, {setSubmitting, setErrors}) => {
             try {
-                const res = await api.post('/auth/login', values);
-                const { token } = res.data.data;
+                const res = await auth.post('/login', values);
+                const {token} = res.data.data;
                 // Xóa token/user cũ
                 localStorage.removeItem('token');
                 sessionStorage.removeItem('token');
@@ -39,7 +39,7 @@ const LoginComponent = () => {
             } catch (err) {
                 if (err.response?.data?.data) {
                     const serverErrors = {};
-                    err.response.data.data.forEach(({ field, message }) => {
+                    err.response.data.data.forEach(({field, message}) => {
                         serverErrors[field] = message;
                     });
                     setErrors(serverErrors);
@@ -70,7 +70,7 @@ const LoginComponent = () => {
                 <form onSubmit={formik.handleSubmit} className="login-form">
                     <h2>Đăng nhập</h2>
 
-                    <label>Email<span style={{ color: "red" }}>*</span></label>
+                    <label>Email<span style={{color: "red"}}>*</span></label>
                     <input
                         type="text"
                         name="email"
@@ -81,7 +81,7 @@ const LoginComponent = () => {
                     />
                     <div className="login-error">{(formik.touched.email && formik.errors.email) || '\u00A0'}</div>
 
-                    <label>Mật khẩu<span style={{ color: "red" }}>*</span></label>
+                    <label>Mật khẩu<span style={{color: "red"}}>*</span></label>
                     <div className="login-password-field">
                         <input
                             type={showPassword ? "text" : "password"}
@@ -97,26 +97,34 @@ const LoginComponent = () => {
                     </div>
                     <div className="login-error">{(formik.touched.password && formik.errors.password) || '\u00A0'}</div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px', gap: '8px' }}>
+                    <div style={{display: 'flex', alignItems: 'center', marginBottom: '12px', gap: '8px'}}>
                         <input
                             type="checkbox"
                             id="rememberMe"
                             checked={rememberMe}
                             onChange={() => setRememberMe(!rememberMe)}
-                            style={{ width: "16px", height: "16px" }}
+                            style={{width: "16px", height: "16px"}}
                         />
-                        <label htmlFor="rememberMe" style={{ fontSize: "14px", cursor: "pointer" }}>
+                        <label htmlFor="rememberMe" style={{fontSize: "14px", cursor: "pointer"}}>
                             Duy trì đăng nhập
                         </label>
+                        <div style={{marginTop: '10px', textAlign: 'center'}}>
+    <span
+        style={{color: '#007bff', cursor: 'pointer', textDecoration: 'underline',marginLeft: '65px'}}
+        onClick={() => navigate('/forgot-password')}
+    >
+        Quên mật khẩu?
+    </span>
+                        </div>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px'}}>
                         <button
                             type="submit"
                             id="login-btn"
                             className="login-sm-btn"
                             disabled={formik.isSubmitting}
-                            style={{ width: '35%' }}
+                            style={{width: '35%'}}
                         >
                             {formik.isSubmitting ? 'Đang xử lý...' : 'Đăng nhập'}
                         </button>
@@ -124,7 +132,7 @@ const LoginComponent = () => {
                         <button
                             type="button"
                             className="login-sm-btn"
-                            style={{ background: "#db4437", width: '60%' }}
+                            style={{background: "#db4437", width: '60%'}}
                             onClick={handleGoogleLogin}
                         >
                             Đăng nhập bằng Google

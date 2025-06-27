@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import api from '../service/AuthService';
+import auth from '../service/AuthService';
 import '../css/Verify.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -46,7 +46,7 @@ const VerifyComponent = () => {
         }
 
         try {
-            const res = await api.post('/auth/verify-otp', { email, otp: joinedOtp });
+            const res = await auth.post('/verify-otp', { email, otp: joinedOtp });
             toast.dismiss();
             toast.success('Xác thực thành công!');
             localStorage.removeItem('pendingEmail');
@@ -77,7 +77,7 @@ const VerifyComponent = () => {
         setIsResending(true);
 
         try {
-            const res = await api.post('/auth/resend-otp', { email });
+            const res = await auth.post('/resend-otp', { email });
             toast.dismiss();
             setMessage(res.data.message || 'OTP mới đã được gửi!');
             setLocked(false);
@@ -164,7 +164,7 @@ const VerifyComponent = () => {
                             type="button"
                             className="verify-button secondary"
                             onClick={handleResend}
-                            disabled={isResending || locked}
+                            disabled={isResending}
                         >
                             {isResending ? "Đang gửi..." : "Gửi lại OTP"}
                         </button>
