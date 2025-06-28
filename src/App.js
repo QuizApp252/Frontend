@@ -9,6 +9,7 @@ import ChangePasswordComponent from "./component/ChangePasswordComponent";
 import ProfileComponent from "./component/ProfileComponent";
 import ForgotPasswordComponent from "./component/ForgotPasswordComponent";
 import ResetPasswordComponent from "./component/ResetPasswordComponent";
+import UploadFileComponent from "./component/UploadFileComponent";
 import { Route, Routes } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -28,6 +29,7 @@ function App() {
                     <Route path="/profile" element={<ProfileComponent />} />
                     <Route path="/forgot-password" element={<ForgotPasswordComponent />} />
                     <Route path="/reset-password" element={<ResetPasswordComponent />} />
+                    <Route path="/upload" element={<UploadFileComponent />} />
                                        {/* Route mặc định */}
                     <Route path="/" element={<HomeComponent />} />
                 </Route>
@@ -43,6 +45,7 @@ function App() {
                 draggable
                 pauseOnHover
                 theme="light"
+                style={{ top: '70px' }}
             />
         </>
     );
